@@ -91,7 +91,7 @@
   "SWAT": {
     "batch_size": 64,
     "win_size": 128,
-    "d_model": 64,
+    "d_model": 256,
     "stride": 32,
     "n_flow_layers": 4,
     "nhead": 4,
@@ -102,7 +102,7 @@
     "betamax": 1e-1,
     "n_times": 100,
     "infer_samples": 30,
-    "U_d": [1, 2, 4],
+    "U_d": [1, 2, 4,8],
     "diffst": 10,
     "diffusion_conditioning": true,
     "only_transformer": false,
