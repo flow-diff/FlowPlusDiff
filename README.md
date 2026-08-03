@@ -118,7 +118,7 @@ We provide pretrained checkpoints for all benchmark datasets. Each archive conta
 
 | Dataset | Download |
 |---------|----------|
-| SMD | <SMD checkpoint link> |
+| SMD | https://drive.google.com/file/d/1TpjBpjxilWsqGJN7yO0Mbc_z66teS9MQ/view?usp=sharing |
 | MSL | https://drive.google.com/file/d/1I1GlU6tzSNBl25raAUmoTd5tAr0-sFw5/view?usp=sharing |
 | SMAP | https://drive.google.com/file/d/1Gb2xm0-tXKKd5Co4MzNtcguCxtH8NlMs/view?usp=sharing |
 | SWAT | https://drive.google.com/file/d/1F96YeyAoCjQ0BN2Oa_5-kEf9iVCBXD3L/view?usp=sharing |
