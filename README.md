@@ -68,15 +68,35 @@ dataset/
     ├── train.csv
     ├── test.csv
     └── test_label.csv
+````
+
+File description:
+
+* `train.csv`: Normal operation data used for training (sensor values only).
+* `test.csv`: Test data containing normal and anomalous samples. The sensor columns must match `train.csv`.
+* `test_label.csv`: Binary anomaly labels corresponding to `test.csv` (`0`: normal, `1`: anomaly).
+
+## SWaT
+
+The original SWaT dataset can be obtained from the same request form above.
+
+Organize the files as follows:
+
+```text
+dataset/
+└── SWAT/
+    ├── train.csv
+    └── test.csv
 ```
 
----
+File description:
+
+* `train.csv`: Normal operation data used for training. The first column (timestamp/index) and the last column (label) are removed during loading.
+- `test.csv`: Test data containing normal and attack samples. The last column contains attack labels (`Normal` or `Attack`), which are converted into binary anomaly labels during loading (`0`: normal, `1`: attack).
 
 ## PSM, SMD, MSL, and SMAP
 
 The processed benchmark datasets can be downloaded from:
-
-**Google Drive**
 
 https://drive.google.com/file/d/1URiYg8bRidmm7bYKy8IKB-heCsqBC22i/view?usp=sharing
 
