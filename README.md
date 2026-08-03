@@ -178,22 +178,3 @@ metrics_seed_stats_<DATASET>.csv
 for each benchmark dataset.
 
 ---
-
-# Citation
-
-If you find this repository useful in your research, please consider citing our paper.
-
-```bibtex
-@article{YOUR_CITATION,
-  title   = {Flow + Diffusion for Time Series Anomaly Detection},
-  author  = {...},
-  journal = {...},
-  year    = {...}
-}
-```
-
----
-
-# License
-
-This project is released under the license provided in the repository.
