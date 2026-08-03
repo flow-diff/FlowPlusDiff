@@ -48,7 +48,7 @@ Place all datasets inside the `dataset/` directory.
 
 The original WADI dataset can be obtained by filling out the official request form:
 
-https://docs.google.com/forms/d/1GOLYXa7TX0KlayqugUOOPMvbcwSQiGNMOjHuNqKcieA/viewform?edit_requested=true
+https://www.sutd.edu.sg/itrust/request-for-datasets/
 
 After downloading the dataset, preprocess and rename the files as follows:
 
