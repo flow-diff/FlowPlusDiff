@@ -1,6 +1,4 @@
-# Flow+Diff: Unifying Flow and Diffusion
-Representations for Multivariate Time Series Anomaly
-Detection
+# Flow+Diff: Unifying Flow and Diffusion Representations for Multivariate Time Series Anomaly Detection
 
 This repository contains the official implementation of **Flow+Diff: Unifying Flow and Diffusion
 Representations for Multivariate Time Series Anomaly
