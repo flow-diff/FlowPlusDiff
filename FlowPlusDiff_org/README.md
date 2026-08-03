@@ -106,12 +106,12 @@ Pretrained checkpoints for all datasets are provided. Each archive contains the 
 
 | Dataset | Google Drive |
 |---------|--------------|
-| SMD | `<SMD checkpoint link>` |
-| MSL | `https://drive.google.com/file/d/1I1GlU6tzSNBl25raAUmoTd5tAr0-sFw5/view?usp=sharing` |
-| SMAP | `https://drive.google.com/file/d/1FNairqJEyuJJ_CuIyEhGtXhPwIUyIPcN/view?usp=sharing` |
-| SWAT | `<SWAT checkpoint link>` |
-| PSM | `<PSM checkpoint link>` |
-| WADI | `<WADI checkpoint link>` |
+| SMD | [Download](<SMD checkpoint link>) |
+| MSL | [Download](https://drive.google.com/file/d/1I1GlU6tzSNBl25raAUmoTd5tAr0-sFw5/view?usp=sharing) |
+| SMAP | [Download](https://drive.google.com/file/d/1FNairqJEyuJJ_CuIyEhGtXhPwIUyIPcN/view?usp=sharing) |
+| SWAT | [Download](<SWAT checkpoint link>) |
+| PSM | [Download](<PSM checkpoint link>) |
+| WADI | [Download](<WADI checkpoint link>) |
 
 Download the desired checkpoint and place the `.pth` file inside the `main_pth/` directory.
 
