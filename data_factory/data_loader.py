@@ -4,7 +4,6 @@ from torch.utils.data import DataLoader
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-import numpy as np
 import matplotlib.pyplot as plt
 
 # ====================================================
