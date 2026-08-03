@@ -109,7 +109,7 @@ Pretrained checkpoints for all datasets are provided. Each archive contains the 
 | SMD | [Download](<SMD checkpoint link>) |
 | MSL | [Download](https://drive.google.com/file/d/1I1GlU6tzSNBl25raAUmoTd5tAr0-sFw5/view?usp=sharing) |
 | SMAP | [Download](https://drive.google.com/file/d/1Gb2xm0-tXKKd5Co4MzNtcguCxtH8NlMs/view?usp=sharing) |
-| SWAT | [Download](<SWAT checkpoint link>) |
+| SWAT | [Download](https://drive.google.com/file/d/1F96YeyAoCjQ0BN2Oa_5-kEf9iVCBXD3L/view?usp=sharing) |
 | PSM | [Download](https://drive.google.com/file/d/1DNJJuekltOCVmUrmnO-DJOX2CCcAcYmO/view?usp=sharing) |
 | WADI | [Download](<WADI checkpoint link>) |
 
@@ -138,9 +138,7 @@ FlowPlusDiff/
 
 ## Experimental Results
 
-The evaluation results for all experiments are provided in the `main_pth/` directory.
-
-The following CSV files contain the evaluation metrics for each of the **five random seeds** used in our experiments:
+The evaluation results for all experiments are provided in the `main_pth/` directory. Each CSV file corresponds to one random seed and reports the evaluation metrics for all benchmark datasets.
 
 ```text
 main_pth/
@@ -151,4 +149,11 @@ main_pth/
 └── 1004metrics_by_dataset.csv
 ```
 
-Each CSV file corresponds to one random seed and reports the evaluation metrics for all benchmark datasets.
+To compute the mean, standard deviation, minimum, and maximum of each evaluation metric across all seeds, run:
+
+```bash
+cd main_pth
+python compute_seed_stats.py
+```
+
+The script reads the `1000`–`1004` metric files and generates `metrics_seed_stats_<DATASET>.csv` for each benchmark dataset.
