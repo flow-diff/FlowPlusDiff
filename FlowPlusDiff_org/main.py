@@ -28,7 +28,7 @@ cwd = os.getcwd()
 print("Current directory:", cwd)
 
 counter=0
-train=False 
+train=True 
 
 if len(sys.argv) > 1:
     datasetname = sys.argv[1].upper()
@@ -118,7 +118,7 @@ for z in range(5):
     print(f"Total:       {total_params:,}")
     opt_flow = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
     scaler = GradScaler("cuda")
-    epochs = 10
+    epochs = 50
 
     best_val_loss = float('inf')
     patience = 3
