@@ -111,7 +111,7 @@ Pretrained checkpoints for all datasets are provided. Each archive contains the 
 | SMAP | [Download](https://drive.google.com/file/d/1Gb2xm0-tXKKd5Co4MzNtcguCxtH8NlMs/view?usp=sharing) |
 | SWAT | [Download](https://drive.google.com/file/d/1F96YeyAoCjQ0BN2Oa_5-kEf9iVCBXD3L/view?usp=sharing) |
 | PSM | [Download](https://drive.google.com/file/d/1DNJJuekltOCVmUrmnO-DJOX2CCcAcYmO/view?usp=sharing) |
-| WADI | [Download](<WADI checkpoint link>) |
+| WADI | [Download](https://drive.google.com/file/d/1o5L6zHE7pqN5q2gW8hio2yjg8_GEgNE3/view?usp=sharing) |
 
 Download the desired checkpoint and place the `.pth` file inside the `main_pth/` directory.
 
