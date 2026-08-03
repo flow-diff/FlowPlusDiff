@@ -28,12 +28,17 @@ cwd = os.getcwd()
 print("Current directory:", cwd)
 
 counter=0
-train=True 
 
 if len(sys.argv) > 1:
     datasetname = sys.argv[1].upper()
 else:
     datasetname = ""
+
+if len(sys.argv) > 2:
+    train = sys.argv[2].lower() == "true"
+else:
+    train = True  # default
+
 seedlist=[1000,1001,1002,1003,1004]
 
 for z in range(5):
@@ -67,7 +72,7 @@ for z in range(5):
     savename=str(datasetname)+f"_seed_{seed}"+"_i"+"_d_"+str(d_model)+"_nfl_"+str(n_flow_layers)+"_ndl_"+str(diff_layers)+"_p_"+str(ratio)+"_ntimes_"+str(n_times)+"_bmin_"+str(betamin)+"_bmax_"+str(betamax)+"_nh_"+str(nhead)+"_fat_"+str(flowattlayer)+"_st_"+str(stride)+"_ud_"+str(U_d)+"_cond_"+str(diffusion_conditioning)+"_ot_"+str(only_transformer)+"_lmo_"+str(LMO)
     train_loader,val_loader,test_loader,Fea = get_loader_segment(data_path, batch_size=batch_size, win_size=win_size, step=stride,
                                                 mode='train',
-                                                dataset=datasetname,nratio=0.0,removed_binary=removed_binary)
+                                                dataset=datasetname,removed_binary=removed_binary)
     if LMO: 
         Fea = Fea*2
 
@@ -97,29 +102,9 @@ for z in range(5):
         device=device
     ).to(device)
 
-    # Print model parameters
-    denoiser_params = sum(p.numel() for p in model.denoiser.parameters() if p.requires_grad)
-    transformer_params = sum(p.numel() for p in model.transformer.parameters() if p.requires_grad)
-    flow_params = sum(p.numel() for p in model.modeles.parameters() if p.requires_grad)
-    log_var_params = model.log_var.numel()
-
-    total_params = (
-        denoiser_params
-        + transformer_params
-        + flow_params
-        + log_var_params
-    )
-
-    print(f"Denoiser:    {denoiser_params:,}")
-    print(f"Transformer: {transformer_params:,}")
-    print(f"Flow:        {flow_params:,}")
-    print(f"log_var:     {log_var_params:,}")
-    print("-" * 30)
-    print(f"Total:       {total_params:,}")
     opt_flow = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
-    scaler = GradScaler("cuda")
+    scaler = GradScaler(init_scale=65536.0)
     epochs = 50
-
     best_val_loss = float('inf')
     patience = 3
 
@@ -139,8 +124,7 @@ for z in range(5):
                     batchmean = batch.mean(dim=1, keepdim=True)
                     batch = batch - batchmean
                     batchmean = batchmean.repeat(1, win_size, 1)
-                    batch = torch.cat((batch, batchmean), dim=-1)  # Concatenate along the feature dimension
-
+                    batch = torch.cat((batch, batchmean), dim=-1) 
 
                 opt_flow.zero_grad()
                 with torch.amp.autocast('cuda'):
@@ -162,7 +146,6 @@ for z in range(5):
             model.eval()
             val_loss_flow = 0.0
 
-
             with torch.inference_mode():
                 for batch, _ in tqdm(val_loader):
                     batch = batch.to(device)
@@ -170,7 +153,7 @@ for z in range(5):
                         batchmean = batch.mean(dim=1, keepdim=True)
                         batch = batch - batchmean
                         batchmean = batchmean.repeat(1, win_size, 1)
-                        batch = torch.cat((batch, batchmean), dim=-1)  # Concatenate along the feature dimension
+                        batch = torch.cat((batch, batchmean), dim=-1)
                     z_0, logdet_tot = model.flow(batch)
                     diff_z_0, sigma = model.diffusion(z_0, batch)
                     dist = Normal(diff_z_0, sigma)
@@ -188,7 +171,7 @@ for z in range(5):
                 os.makedirs("main_pth", exist_ok=True)
                 torch.save(model.state_dict(), os.path.join("main_pth", savename+".pth"))
                 print(f"Epoch {epoch+1}/{epochs}: train_loss={avg_loss_flow:.4f}, val_loss={val_loss_flow:.4f}, time={epoch_time:.2f}s - Saved")
-                counter = 0  # reset patience counter
+                counter = 0 
             else:
                 counter += 1
                 print(f"Epoch {epoch+1}/{epochs}: train_loss={avg_loss_flow:.4f}, val_loss={val_loss_flow:.4f}, time={epoch_time:.2f}s - No improvement ({counter}/{patience})")
@@ -217,7 +200,6 @@ for z in range(5):
 
             x = x.to(device)
             true.append(x.clone().detach().cpu())
-                        # Start timing
             if torch.cuda.is_available():
                 torch.cuda.synchronize()
             start = time.perf_counter()
@@ -226,7 +208,7 @@ for z in range(5):
                 xmean = x.mean(dim=1, keepdim=True)
                 x = x - xmean
                 xmean = xmean.repeat(1, win_size, 1)
-                x=torch.cat((x, xmean), dim=-1)  # Concatenate along the feature dimension
+                x=torch.cat((x, xmean), dim=-1)
 
             predout, feature_reconstd, y_prob, z_flow, mu = model.infer(
                 x, score_type=score_type
@@ -276,7 +258,8 @@ for z in range(5):
         error=(pred-true)**2
         error=error.mean(-1)
         weightstart = all_y_prob.shape[0]
-        induced_values= np.zeros_like(all_y_prob) # Initialize output tensor
+
+        induced_values= np.zeros_like(all_y_prob) 
         windowroll=L
         full=all_y_prob.shape[0]
 
@@ -287,8 +270,8 @@ for z in range(5):
             all_scores=all_y_prob
         else:
             for l in range(0,full):
-                l_min = max(l - windowroll, 0)   # Ensure valid lower index
-                l_max = min(l + windowroll, full) # Ensure valid upper index (exclusive)
+                l_min = max(l - windowroll, 0)
+                l_max = min(l + windowroll, full) 
                 induced_values[l] = np.mean(all_y_prob[l_min:l_max])
             all_scores=induced_values
         gt = test_labels.astype(int)
