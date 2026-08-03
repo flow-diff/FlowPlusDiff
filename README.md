@@ -27,7 +27,7 @@ python main.py DATASET_NAME TRAINING
 where
 
 ```text
-DATASET_NAME ∈ {SMD,  MSL, SMAP, SWAT, PSM, WADI}
+DATASET_NAME ∈ {SWAT, WADI, PSM, SMD, MSL, SMAP}
 
 TRAINING ∈ {true, false}
 ```
@@ -56,7 +56,7 @@ Place all datasets inside the `dataset/` directory.
 
 ## WADI
 
-The original WADI dataset can be obtained by submitting the request form available at:
+The original WADI dataset can be obtained by submitting the request form:
 
 https://www.sutd.edu.sg/itrust/request-for-datasets/
 
@@ -68,20 +68,6 @@ dataset/
     ├── train.csv
     ├── test.csv
     └── test_label.csv
-```
-
-## SWaT
-
-The original SWaT dataset can be obtained from the same request form above.
-
-Organize the files as
-
-```text
-dataset/
-└── SWAT/
-    ├── train.csv
-    └── test.csv
-```
 
 ## PSM, SMD, MSL, and SMAP
 
