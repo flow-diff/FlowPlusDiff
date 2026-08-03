@@ -1,6 +1,10 @@
 # Flow + Diffusion for Time Series Anomaly Detection
 
-## Requirements
+This repository contains the official implementation of **Flow + Diffusion for Time Series Anomaly Detection**.
+
+---
+
+# Requirements
 
 Install the required dependencies before running the code:
 
@@ -10,15 +14,15 @@ pip install -r requirements.txt
 
 ---
 
-## Running the Code
+# Running the Code
 
-To train or evaluate the model, run:
+Train or evaluate the model using:
 
 ```bash
 python main.py DATASET_NAME TRAINING
 ```
 
-where:
+where
 
 ```text
 DATASET_NAME ∈ {SWAT, WADI, PSM, SMD, MSL, SMAP}
@@ -26,13 +30,17 @@ DATASET_NAME ∈ {SWAT, WADI, PSM, SMD, MSL, SMAP}
 TRAINING ∈ {true, false}
 ```
 
-Examples:
+### Examples
+
+Train a model:
 
 ```bash
-# Train the model
 python main.py PSM true
+```
 
-# Evaluate a pretrained model
+Evaluate using a pretrained checkpoint:
+
+```bash
 python main.py PSM false
 ```
 
@@ -40,13 +48,13 @@ When `TRAINING=false`, the script automatically loads the corresponding pretrain
 
 ---
 
-## Dataset Preparation
+# Dataset Preparation
 
 Place all datasets inside the `dataset/` directory.
 
-### WADI Dataset
+## WADI
 
-The original WADI dataset can be obtained by filling out the official request form:
+The original WADI dataset can be obtained by submitting the request form available at:
 
 https://www.sutd.edu.sg/itrust/request-for-datasets/
 
@@ -60,11 +68,11 @@ dataset/
     └── test_label.csv
 ```
 
-### SWaT Dataset
+## SWaT
 
 The original SWaT dataset can be obtained from the same request form above.
 
-Organize the dataset as:
+Organize the files as
 
 ```text
 dataset/
@@ -73,15 +81,17 @@ dataset/
     └── test.csv
 ```
 
-### PSM, SMD, MSL, and SMAP
+## PSM, SMD, MSL, and SMAP
 
-The processed benchmark datasets can be downloaded from the Google Drive link below:
+The processed benchmark datasets can be downloaded from:
 
-**Google Drive:** [`<Google Drive link for processed datasets>`](https://drive.google.com/file/d/1URiYg8bRidmm7bYKy8IKB-heCsqBC22i/view?usp=sharing)
+**Google Drive**
+
+https://drive.google.com/file/d/1URiYg8bRidmm7bYKy8IKB-heCsqBC22i/view?usp=sharing
 
 Extract the downloaded archive and place the dataset folders directly inside the `dataset/` directory.
 
-The final directory structure should be:
+The final directory structure should be
 
 ```text
 dataset/
@@ -92,30 +102,30 @@ dataset/
 ├── SWAT/
 │   ├── train.csv
 │   └── test.csv
-├── WADI/
-│   ├── train.csv
-│   ├── test.csv
-│   └── test_label.csv
+└── WADI/
+    ├── train.csv
+    ├── test.csv
+    └── test_label.csv
 ```
 
 ---
 
-## Pretrained Checkpoints
+# Pretrained Checkpoints
 
-Pretrained checkpoints for all datasets are provided. Each archive contains the checkpoints for the **five random seeds** used in our experiments.
+We provide pretrained checkpoints for all benchmark datasets. Each archive contains the checkpoints corresponding to the **five random seeds** used in our experiments.
 
-| Dataset | Google Drive |
-|---------|--------------|
-| SMD | [Download](<SMD checkpoint link>) |
-| MSL | [Download](https://drive.google.com/file/d/1I1GlU6tzSNBl25raAUmoTd5tAr0-sFw5/view?usp=sharing) |
-| SMAP | [Download](https://drive.google.com/file/d/1Gb2xm0-tXKKd5Co4MzNtcguCxtH8NlMs/view?usp=sharing) |
-| SWAT | [Download](https://drive.google.com/file/d/1F96YeyAoCjQ0BN2Oa_5-kEf9iVCBXD3L/view?usp=sharing) |
-| PSM | [Download](https://drive.google.com/file/d/1DNJJuekltOCVmUrmnO-DJOX2CCcAcYmO/view?usp=sharing) |
-| WADI | [Download](https://drive.google.com/file/d/1o5L6zHE7pqN5q2gW8hio2yjg8_GEgNE3/view?usp=sharing) |
+| Dataset | Download |
+|---------|----------|
+| SMD | <SMD checkpoint link> |
+| MSL | https://drive.google.com/file/d/1I1GlU6tzSNBl25raAUmoTd5tAr0-sFw5/view?usp=sharing |
+| SMAP | https://drive.google.com/file/d/1Gb2xm0-tXKKd5Co4MzNtcguCxtH8NlMs/view?usp=sharing |
+| SWAT | https://drive.google.com/file/d/1F96YeyAoCjQ0BN2Oa_5-kEf9iVCBXD3L/view?usp=sharing |
+| PSM | https://drive.google.com/file/d/1DNJJuekltOCVmUrmnO-DJOX2CCcAcYmO/view?usp=sharing |
+| WADI | https://drive.google.com/file/d/1o5L6zHE7pqN5q2gW8hio2yjg8_GEgNE3/view?usp=sharing |
 
-Download the desired checkpoint and place the `.pth` file inside the `main_pth/` directory.
+Download the desired archive and extract the `.pth` checkpoint files into the `main_pth/` directory.
 
-The checkpoint filenames encode the dataset name, random seed, and training hyperparameters. No renaming is required.
+The checkpoint filenames encode the dataset, random seed, and training hyperparameters. No renaming is required.
 
 Example:
 
@@ -123,7 +133,7 @@ Example:
 FlowPlusDiff/
 ├── main.py
 ├── main_pth/
-│   └── MSL_seed_1000_i_d_256_nfl_4_ndl_4_p_0.5_ntimes_100_bmin_0.001_bmax_0.1_nh_4_fat_4_st_16_ud_[1, 2, 4, 8]_cond_True_ot_False_lmo_True.pth
+│   └── MSL_seed_1000_i_d_256_nfl_4_ndl_4_p_0.5_ntimes_100_bmin_0.001_bmax_0.1_nh_4_fat_4_st_16_ud_[1,2,4,8]_cond_True_ot_False_lmo_True.pth
 ├── dataset/
 │   ├── MSL/
 │   ├── PSM/
@@ -131,14 +141,17 @@ FlowPlusDiff/
 │   ├── SMD/
 │   ├── SWAT/
 │   └── WADI/
+├── requirements.txt
 └── ...
 ```
 
 ---
 
-## Experimental Results
+# Experimental Results
 
-The evaluation results for all experiments are provided in the `main_pth/` directory. Each CSV file corresponds to one random seed and reports the evaluation metrics for all benchmark datasets.
+The evaluation results reported in the paper are provided in the `main_pth/` directory.
+
+Each CSV file corresponds to one random seed and contains the evaluation metrics for all benchmark datasets.
 
 ```text
 main_pth/
@@ -149,11 +162,38 @@ main_pth/
 └── 1004metrics_by_dataset.csv
 ```
 
-To compute the mean, standard deviation, minimum, and maximum of each evaluation metric across all seeds, run:
+To compute the mean, standard deviation, minimum, and maximum of each evaluation metric across all five random seeds, run
 
 ```bash
 cd main_pth
 python compute_seed_stats.py
 ```
 
-The script reads the `1000`–`1004` metric files and generates `metrics_seed_stats_<DATASET>.csv` for each benchmark dataset.
+The script automatically reads the five metric files above and generates summary files of the form
+
+```text
+metrics_seed_stats_<DATASET>.csv
+```
+
+for each benchmark dataset.
+
+---
+
+# Citation
+
+If you find this repository useful in your research, please consider citing our paper.
+
+```bibtex
+@article{YOUR_CITATION,
+  title   = {Flow + Diffusion for Time Series Anomaly Detection},
+  author  = {...},
+  journal = {...},
+  year    = {...}
+}
+```
+
+---
+
+# License
+
+This project is released under the license provided in the repository.
