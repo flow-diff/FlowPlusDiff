@@ -180,8 +180,10 @@ class SWaTSegLoader(Dataset):
 
         self.train = data
         self.test = test_data
-        self.train[:, [5,10]] = 0 #following https://arxiv.org/pdf/2310.15416 NSPR paper
-        self.test[:, [5,10]] = 0 #following https://arxiv.org/pdf/2310.15416 NSPR paper
+        # Following the preprocessing protocol of the NSPR paper:
+        # https://arxiv.org/abs/2310.15416
+        self.train[:, [5, 10]] = 0
+        self.test[:, [5, 10]] = 0
         self.dim=self.test.shape[1]
         self.test_labels = labels.reshape(-1, 1)
         self.val=self.train[int(0.8*self.train.shape[0]):self.train.shape[0]]
