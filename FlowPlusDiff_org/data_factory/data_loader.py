@@ -4,26 +4,49 @@ from torch.utils.data import DataLoader
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from dataset.preprocessing.preprocess import UCR_AnomalySequence
-from evaluation.basic_metrics import compute_nonstationarity
 import numpy as np
 import matplotlib.pyplot as plt
 
+# ====================================================
+# Utility: Auto-detect CSV header
+# ====================================================
+def detect_csv_header(filepath, nrows=5):
+    """
+    Automatically detect if CSV has a header row.
+    Returns header=0 if first row looks like headers, header=None otherwise.
+    """
+    try:
+        # Read first few rows without header
+        df_peek = pd.read_csv(filepath, nrows=nrows, header=None, dtype=str)
+        first_row = df_peek.iloc[0]
+        
+        # Check if first row contains numeric values
+        numeric_count = 0
+        for val in first_row:
+            try:
+                float(val)
+                numeric_count += 1
+            except (ValueError, TypeError):
+                pass
+        
+        # If most values are numeric, first row is data (no header)
+        # If most values are non-numeric, first row is header
+        is_header = numeric_count < len(first_row) * 0.5
+        return 0 if is_header else None
+    except:
+        # Default to header=0 if detection fails
+        return 0
 
-def scalerfunc(train, val, test):
-    # Convert to float32
-    train = np.float32(train)
-    val = np.float32(val)
-    test = np.float32(test)
 
-
-    # Scaling
-    scaler = MinMaxScaler(feature_range=(-1, 1)).fit(train)
-
+def scalerfunc(train,val,test):
+    train=np.float32(train)
+    test=np.float32(test)
+    val=np.float32(val)
+    scaler = MinMaxScaler(feature_range=(-1,1)).fit(train)
     train = scaler.transform(train)
+    test = np.clip(scaler.transform(test), -4,4)
     val = np.clip(scaler.transform(val), -4, 4)
-    test = np.clip(scaler.transform(test), -4, 4)
-
+    
     return train, val, test
 
 
@@ -65,14 +88,11 @@ class SplitDataset(Dataset):
             )
 
 
-
-
 class WADISegLoader(Dataset):
-    def __init__(self, data_path, win_size, step, mode="train",nratio=0.1,removed_binary=False):
+    def __init__(self, data_path, win_size, step, mode="train",removed_binary=False):
         self.mode = mode
         self.step = step
         self.win_size = win_size
-        self.nratio = nratio
         self.removed_binary = removed_binary
         header_mode = detect_csv_header(data_path + '/train.csv')
         data = pd.read_csv(data_path + '/train.csv', header=header_mode).ffill().bfill()
@@ -92,8 +112,6 @@ class WADISegLoader(Dataset):
                     data[:, idx] = 0
                     test_data[:, idx] = 0
         
-        if nratio !=0:
-            data = inject_anomalies_random(data, ratio=nratio)
         
         self.val=data[int(0.8*data.shape[0]):data.shape[0]]
         self.train=data[0:int(0.8*data.shape[0])]
@@ -124,11 +142,10 @@ class WADISegLoader(Dataset):
      
         
 class SWaTSegLoader(Dataset):
-    def __init__(self, data_path, win_size, step, mode="train",nratio=0,removed_binary=False):
+    def __init__(self, data_path, win_size, step, mode="train",removed_binary=False):
         self.mode = mode
         self.step = step
         self.win_size = win_size
-        self.nratio = nratio
         self.removed_binary = removed_binary
 
         data = pd.read_csv(data_path + '/train.csv', header=1).ffill().bfill()
@@ -161,12 +178,10 @@ class SWaTSegLoader(Dataset):
                     data[:, idx] = 0
                     test_data[:, idx] = 0
 
-        if nratio !=0:
-            data = inject_anomalies_random(data, ratio=nratio)
         self.train = data
         self.test = test_data
-        self.train[:, [5,10]] = 0
-        self.test[:, [5,10]] = 0
+        self.train[:, [5,10]] = 0 #following https://arxiv.org/pdf/2310.15416 NSPR paper
+        self.test[:, [5,10]] = 0 #following https://arxiv.org/pdf/2310.15416 NSPR paper
         self.dim=self.test.shape[1]
         self.test_labels = labels.reshape(-1, 1)
         self.val=self.train[int(0.8*self.train.shape[0]):self.train.shape[0]]
@@ -191,14 +206,13 @@ class SWaTSegLoader(Dataset):
         elif (self.mode == 'test'):
             return np.float32(self.test[index:index + self.win_size]), np.float32(
                 self.test_labels[index:index + self.win_size])
-     
 
+        
 class PSMSegLoader(Dataset):
-    def __init__(self, data_path, win_size, step, mode="train",nratio=0,removed_binary=False):
+    def __init__(self, data_path, win_size, step, mode="train",removed_binary=False):
         self.mode = mode
         self.step = step
         self.win_size = win_size
-        self.nratio = nratio
         self.removed_binary = removed_binary
         header_mode = detect_csv_header(data_path + '/train.csv')
         data = pd.read_csv(data_path + '/train.csv', header=header_mode).ffill().bfill()
@@ -222,67 +236,6 @@ class PSMSegLoader(Dataset):
                     data[:, idx] = 0
                     test_data[:, idx] = 0
         
-        if nratio !=0:
-            data = inject_anomalies_random(data, ratio=nratio)
-        datalen=len(data)
-        trainlen=int(datalen*0.8)
-        self.train,self.val,self.test=scalerfunc(data[0:trainlen],data[trainlen:datalen],test_data)
-        self.dim=self.test.shape[1]
-        print("test:", self.test.shape)
-        print("train:", self.train.shape)
-    def __len__(self):
-
-        if self.mode == "train":
-            return (self.train.shape[0] - self.win_size) // self.step + 1
-        elif self.mode == "val":
-            return (self.val.shape[0] - self.win_size) // self.step + 1
-        elif (self.mode == 'test'):
-            return (self.test.shape[0] - self.win_size) // self.step + 1
-        
-    def __getitem__(self, index):
-        index = index * self.step
-        if self.mode == "train":
-            return np.float32(self.train[index:index + self.win_size]), np.float32(self.test_labels[0:self.win_size])
-        elif self.mode == "val":
-            return np.float32(self.val[index:index + self.win_size]), np.float32(self.test_labels[0:self.win_size])
-        elif (self.mode == 'test'):
-            return np.float32(self.test[index:index + self.win_size]), np.float32(
-                self.test_labels[index:index + self.win_size])
-
-
-class SWANSegLoader(Dataset):
-    def __init__(self, data_path, win_size, step, mode="train",nratio=0,removed_binary=False):
-        self.mode = mode
-        self.step = step
-        self.win_size = win_size
-        self.nratio = nratio
-        self.removed_binary = removed_binary
-        header_mode = detect_csv_header(data_path + '/train.csv')
-        data = pd.read_csv(data_path + '/train.csv', header=header_mode).ffill().bfill()
-        test_data = pd.read_csv(data_path + '/test.csv', header=header_mode).ffill().bfill()
-        data = data.values
-        test_data = test_data.values
-        self.test_labels = (
-            pd.read_csv(data_path + '/test_label.csv')
-            .fillna(0).values[:, 1:]
-            .astype(int)
-        )
-        print("Initial data shape:", data[:10])
-        print("Initial test data shape:", test_data[:10])
-        print("Initial test labels shape:", self.test_labels[:10])
-        if removed_binary:
-            binary_idx = [
-                i for i in range(data.shape[1])
-                if len(np.unique(data[:, i])) <= 2
-            ]
-            if len(binary_idx) > 0:
-                print(f"Setting {len(binary_idx)} binary feature columns to 0 (indices: {binary_idx})")
-                for idx in binary_idx:
-                    data[:, idx] = 0
-                    test_data[:, idx] = 0
-        
-        if nratio !=0:
-            data = inject_anomalies_random(data, ratio=nratio)
         datalen=len(data)
         trainlen=int(datalen*0.8)
         self.train,self.val,self.test=scalerfunc(data[0:trainlen],data[trainlen:datalen],test_data)
@@ -310,17 +263,15 @@ class SWANSegLoader(Dataset):
 
 
 class MSLSegLoader(Dataset):
-    def __init__(self, data_path, win_size, step, mode="train",nratio=0,removed_binary=False):
+    def __init__(self, data_path, win_size, step, mode="train",removed_binary=False):
         self.mode = mode
         self.step = step
         self.win_size = win_size
-        self.nratio = nratio
         self.removed_binary = removed_binary
         data = pd.DataFrame(np.load(data_path + "/MSL_train.npy")).ffill().bfill().values
         test_data = pd.DataFrame(np.load(data_path + "/MSL_test.npy")).ffill().bfill().values
         self.test_labels = np.load(data_path + "/MSL_test_label.npy")
 
-        # ensure arrays are writable (avoid read-only views/mmap)
         data = np.array(data, copy=True)
         test_data = np.array(test_data, copy=True)
 
@@ -335,8 +286,6 @@ class MSLSegLoader(Dataset):
                     data[:, idx] = 0
                     test_data[:, idx] = 0
 
-        if nratio !=0:
-            data = inject_anomalies_random(data, ratio=nratio)
         datalen=len(data)
         trainlen=int(datalen*0.8)
         self.train,self.val,self.test=scalerfunc(data[0:trainlen],data[trainlen:datalen],test_data)
@@ -364,11 +313,10 @@ class MSLSegLoader(Dataset):
      
 
 class SMAPSegLoader(Dataset):
-    def __init__(self, data_path, win_size, step, mode="train",nratio=0,removed_binary=False):
+    def __init__(self, data_path, win_size, step, mode="train",removed_binary=False):
         self.mode = mode
         self.step = step
         self.win_size = win_size
-        self.nratio = nratio
         self.removed_binary = removed_binary
         lab_tst = []
         total_anomaly_points = 0
@@ -421,8 +369,6 @@ class SMAPSegLoader(Dataset):
                     test_data[:, idx] = 0
 
         
-        if nratio !=0:
-            data = inject_anomalies_random(data, ratio=nratio)
         self.test_labels = lab_tst
         datalen=len(data)
         trainlen=int(datalen*0.8)
@@ -449,93 +395,13 @@ class SMAPSegLoader(Dataset):
             return np.float32(self.val[index:index + self.win_size]), np.float32(self.test_labels[0:self.win_size])
         elif (self.mode == 'test'):
             return np.float32(self.test[index:index + self.win_size]), np.float32(self.test_labels[index:index + self.win_size])
-     
-
-# --------------------------------------------------
-# 1. Extract anomaly segment lengths
-# --------------------------------------------------
-def anomaly_segment_lengths(labels):
-    """
-    labels: 1D array-like of binary anomaly labels (0 or 1)
-    returns: 1D numpy array of anomaly segment lengths
-    """
-    labels = np.asarray(labels).astype(int)
-
-    # pad to detect boundary segments
-    padded = np.pad(labels, (1, 1), mode="constant")
-    diff = np.diff(padded)
-
-    starts = np.where(diff == 1)[0]
-    ends   = np.where(diff == -1)[0]
-
-    lengths = ends - starts
-    return lengths
-
-
-# --------------------------------------------------
-# 2. Compute empirical distribution
-# --------------------------------------------------
-def segment_length_distribution(lengths):
-    """
-    lengths: 1D array of segment lengths
-    returns: unique lengths, PMF, CDF
-    """
-    unique_L, counts = np.unique(lengths, return_counts=True)
-    pmf = counts / counts.sum()
-    cdf = np.cumsum(pmf)
-    return unique_L, pmf, cdf
-
-
-# --------------------------------------------------
-# 3. Summary statistics
-# --------------------------------------------------
-def segment_statistics(lengths):
-    return {
-        "num_segments": len(lengths),
-        "mean": lengths.mean(),
-        "median": np.median(lengths),
-        "std": lengths.std(),
-        "min": lengths.min(),
-        "max": lengths.max(),
-        "q25": np.percentile(lengths, 25),
-        "q75": np.percentile(lengths, 75),
-    }
-
-
-# --------------------------------------------------
-# 4. Visualization
-# --------------------------------------------------
-def plot_segment_distribution(lengths, unique_L, pmf, cdf):
-    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-
-    # Histogram
-    axes[0].hist(lengths, bins="auto")
-    axes[0].set_xlabel("Anomaly segment length")
-    axes[0].set_ylabel("Count")
-    axes[0].set_title("Histogram of anomaly segment lengths")
-
-    # PMF
-    axes[1].bar(unique_L, pmf)
-    axes[1].set_xlabel("Anomaly segment length")
-    axes[1].set_ylabel("Probability")
-    axes[1].set_title("PMF of anomaly segment lengths")
-
-    # CDF
-    axes[2].step(unique_L, cdf, where="post")
-    axes[2].set_xlabel("Anomaly segment length")
-    axes[2].set_ylabel("Cumulative probability")
-    axes[2].set_title("CDF of anomaly segment lengths")
-
-    plt.tight_layout()
-    plt.show()
 
 
 class SMDSegLoader(Dataset):
-    def __init__(self, data_path, win_size, step, mode="train",nratio=0,removed_binary=False):
+    def __init__(self, data_path, win_size, step, mode="train",removed_binary=False):
         self.mode = mode
         self.step = step
         self.win_size = win_size
-        self.nratio = nratio
         self.removed_binary = removed_binary
         insert=False
         test_data, lab_tst = [], []
@@ -566,7 +432,6 @@ class SMDSegLoader(Dataset):
                     test_data[:, idx] = 0
         
         self.test_labels = lab_tst
-
         datalen=len(data)
         trainlen=int(datalen*0.8)
         self.train,self.val,self.test=scalerfunc(data[0:trainlen],data[trainlen:datalen],test_data)
@@ -594,67 +459,9 @@ class SMDSegLoader(Dataset):
             return np.float32(self.test[index:index + self.win_size]), np.float32(
                 self.test_labels[index:index + self.win_size])
      
-    
-class UCRSegLoader(Dataset):
-    def __init__(self, data_path, win_size, step, mode="train", nratio=0.0, removed_binary=False):
-        dataset_ind=[i for i in range(1, 2)]
-        self.mode = mode
-        self.step = step
-        self.win_size = win_size
-        self.nratio = nratio
-        self.removed_binary = removed_binary
-        insert=False
-        test_data, lab_tst = [], []
-        for idx in dataset_ind:
-            dataset_idx = int(idx)
-            dataset_importer = UCR_AnomalySequence.create_by_id(dataset_idx)
-            trn = dataset_importer.train_data[:, None]  # add channel dim; (ts_len, 1)
-            tst = dataset_importer.test_data[:, None]  # (ts_len, 1)
-            print(trn.shape)
-            print(tst.shape)
-                # anomaly data
-            self.anom_start = dataset_importer.anom_start - dataset_importer.train_stop  # relative to `test_data`
-            self.anom_stop = dataset_importer.anom_stop - dataset_importer.train_stop  # relative to `test_data`
-            label = np.zeros_like(tst)[:, 0]  # (ts_len,)
-            label[self.anom_start:self.anom_stop] = 1.
-        
-            if insert:
-                data=np.concatenate((data,trn),axis=0)
-                test_data=np.concatenate((test_data,tst),axis=0)
-                lab_tst=np.concatenate((lab_tst,label),axis=0)
-            else:
-                insert=True
-                data=trn
-                test_data=tst
-                lab_tst=label
-        self.test_labels = lab_tst
-        self.train,self.test =scalerfunc(data,test_data,self.test_labels)
-        self.dim=self.test.shape[1]
-        
-        print("test:", self.test.shape)
-        print("train:", self.train.shape)
-        
-    def __len__(self):
-
-        if self.mode == "train":
-            return (self.train.shape[0] - self.win_size) // self.step + 1
-        elif (self.mode == 'test'):
-            return (self.test.shape[0] - self.win_size) // self.step + 1
-        else:
-            return (self.train.shape[0] - self.win_size) // self.step + 1
-
-    def __getitem__(self, index):
-        index = index * self.step
-        if self.mode == "train":
-            return np.float32(self.train[index:index + self.win_size]), np.float32(self.test_labels[0:self.win_size])
-        elif (self.mode == 'test'):
-            return np.float32(self.test[index:index + self.win_size]), np.float32(
-                self.test_labels[index:index + self.win_size])
-        else:
-            return np.float32(self.train[index:index + self.win_size]), np.float32(self.test_labels[0:self.win_size])
 
      
-def get_loader_segment(data_path, batch_size, win_size=100, step=100, mode='train', dataset='KDD',nratio=0.0,removed_binary=False):
+def get_loader_segment(data_path, batch_size, win_size=100, step=100, mode='train', dataset='KDD',removed_binary=False):
     '''
     model : 'train' or 'test'
     '''
@@ -664,28 +471,22 @@ def get_loader_segment(data_path, batch_size, win_size=100, step=100, mode='trai
         step=win_size
     datasetname=dataset
     if (dataset == 'SMD'):
-        dataset= SMDSegLoader(data_path, win_size, step, mode,nratio,removed_binary)
+        dataset= SMDSegLoader(data_path, win_size, step, mode,removed_binary)
         dimret = dataset.dim 
     elif (dataset == 'MSL'):
-        dataset= MSLSegLoader(data_path, win_size, step, mode,nratio,removed_binary)
+        dataset= MSLSegLoader(data_path, win_size, step, mode,removed_binary)
         dimret = dataset.dim 
     elif (dataset == 'SMAP'):
-        dataset = SMAPSegLoader(data_path, win_size, step, mode,nratio,removed_binary)
+        dataset = SMAPSegLoader(data_path, win_size, step, mode,removed_binary)
         dimret = dataset.dim 
     elif (dataset == 'PSM'):
-        dataset = PSMSegLoader(data_path, win_size, step, mode,nratio,removed_binary)
+        dataset = PSMSegLoader(data_path, win_size, step, mode,removed_binary)
         dimret = dataset.dim 
     elif (dataset == 'SWAT'):
-        dataset = SWaTSegLoader(data_path, win_size, step, mode,nratio,removed_binary)
-        dimret = dataset.dim 
-    elif (dataset == 'UCR'):
-        dataset = UCRSegLoader(data_path, win_size, step, mode,nratio,removed_binary)
+        dataset = SWaTSegLoader(data_path, win_size, step, mode,removed_binary)
         dimret = dataset.dim 
     elif (dataset == 'WADI'):
-        dataset = WADISegLoader(data_path, win_size, step, mode,nratio,removed_binary)
-        dimret = dataset.dim 
-    elif (dataset == 'SWAN'):
-        dataset = SWANSegLoader(data_path, win_size, step, mode,nratio,removed_binary)
+        dataset = WADISegLoader(data_path, win_size, step, mode,removed_binary)
         dimret = dataset.dim 
 
         
