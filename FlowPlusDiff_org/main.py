@@ -212,8 +212,6 @@ for z in range(5):
 
     with torch.inference_mode():
         for i, (x, labels) in enumerate(tqdm(test_loader)):
-            if i == 10:
-                break  # Limit to 10 batches for testing
             B, L, Fea = x.shape
             total_samples += B
 
