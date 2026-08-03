@@ -27,7 +27,7 @@ python main.py DATASET_NAME TRAINING
 where
 
 ```text
-DATASET_NAME ∈ {SWAT, WADI, PSM, SMD, MSL, SMAP}
+DATASET_NAME ∈ {SMD,  MSL, SMAP, SWAT, PSM, WADI}
 
 TRAINING ∈ {true, false}
 ```
