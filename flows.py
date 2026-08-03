@@ -103,15 +103,9 @@ class Transformst(nn.Module):
 class AffineSigmoid(nn.Module):
     def __init__(self, eps=1e-6):
         super().__init__()
-        self.eps = eps  # stability for inverse
+        self.eps = eps 
 
     def forward(self, z):
-        """
-        Forward transform: z -> y
-        Returns:
-            y: bounded output in (-1,1)
-            logdet: log absolute Jacobian
-        """
 
         sigma = torch.sigmoid(z)
         y = 2.0 * sigma - 1.0
@@ -185,9 +179,8 @@ class AugmentedBlock(nn.Module):
                 return x_out, logdet
             
 def extract(a, t, x_shape):
-    # a: [T], t: [B], x_shape: (B, L, F) or similar
-    out = a[t]  # shape [B]
-    return out.view(-1, *((1,) * (len(x_shape) - 1)))  # [B,1,1...] broadcastable
+    out = a[t]  
+    return out.view(-1, *((1,) * (len(x_shape) - 1))) 
 
 
 def create_masks_1d(L, F, n_layers, ratio=0.25, device=None):
@@ -313,8 +306,8 @@ class AugmentedSequential(nn.Sequential):
                 feature_recon=feature_reconraw.view(B, n, L, Fea).mean(dim=1)
                 feature_reconstd=feature_reconraw.view(B, n, L, Fea).std(dim=1)
                 z_diff = flat_latent.view(B, n, L, Fea)
-                mu = z_diff.mean(1)  # (B, L, Fea)
-                sigma = z_diff.std(dim=1) # (B, L, Fea) - add small value for stability
+                mu = z_diff.mean(1) 
+                sigma = z_diff.std(dim=1) 
                 
                 # Compute score based on selected type
                 if score_type in ["l2"]:
@@ -354,7 +347,6 @@ class AugmentedSequential(nn.Sequential):
 
             x0 = (flat_latent - torch.sqrt(1 - alpha_bar_t) * eps_pred) / torch.sqrt(alpha_bar_t)
 
-            # compute sigma for stochasticity
             sigma = eta * torch.sqrt(
                 (1 - alpha_bar_next) / (1 - alpha_bar_t) *
                 (1 - alpha_bar_t / alpha_bar_next)
@@ -379,7 +371,7 @@ class AugmentedSequential(nn.Sequential):
         if self.only_transformer is True:
             mu = self.transformer(feature)
             sigma = torch.exp(0.5 * self.log_var)
-            sigma=sigma.clamp(0.1,2)
+            sigma=sigma.clamp(0.1,5)
         elif self.only_transformer is False:
             t = torch.randint(0, self.T, (B,), device=device)
             epsilon = torch.randn((B, L, Fea), device=device)
@@ -388,16 +380,15 @@ class AugmentedSequential(nn.Sequential):
                 self.sqrt_one_minus_alpha_bars, t, (B, L, Fea)
             )
             z_t = z_0 * sqrt_alpha_bar + epsilon * sqrt_one_minus_alpha_bar
-            denoiser_input = z_t.permute(0, 2, 1)  # (B, F, L)
+            denoiser_input = z_t.permute(0, 2, 1) 
             if self.diffusion_conditioning:
                 context = self.transformer(feature, t)
                 denoiser_input = torch.concat((denoiser_input, context.permute(0, 2, 1)), -2)
             eps_pred = self.denoiser(denoiser_input, t).permute(0, 2, 1).float()
             mu = (z_t - eps_pred * sqrt_one_minus_alpha_bar) / (sqrt_alpha_bar)
             sigma = torch.exp(0.5 * self.log_var)
-            sigma=sigma.clamp(0.1,2)
+            sigma=sigma.clamp(0.1,5)
         else:
-            # Fallback: identity
             mu = torch.zeros_like(feature)
             sigma = 1.0
 
@@ -410,5 +401,5 @@ class DenoiserWithScale(nn.Module):
     
     def forward(self, x, t):
         out = self.unet(x, t)
-        return out # clamp to prevent extreme values
+        return out 
 
