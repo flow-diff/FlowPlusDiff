@@ -103,7 +103,7 @@ for z in range(5):
     ).to(device)
 
     opt_flow = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
-    scaler = GradScaler(init_scale=65536.0)
+    scaler = GradScaler()
     epochs = 50
     best_val_loss = float('inf')
     patience = 3
