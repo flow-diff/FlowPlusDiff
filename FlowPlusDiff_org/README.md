@@ -28,11 +28,11 @@ python main.py PSM false
 
 ---
 
-## Dataset Preparation
+# Dataset Preparation
 
 Place all datasets inside the `dataset/` directory.
 
-### WADI Dataset
+## WADI Dataset
 
 The original WADI dataset can be obtained by filling out the official request form:
 
@@ -48,7 +48,7 @@ dataset/
     └── test_label.csv
 ```
 
-### SWaT Dataset
+## SWaT Dataset
 
 The original SWaT dataset can be obtained from the same request form above.
 
@@ -61,18 +61,61 @@ dataset/
     └── test.csv
 ```
 
-### Other Datasets
+## PSM, SMD, MSL, and SMAP
 
-The remaining benchmark datasets (**PSM**, **SMD**, **MSL**, and **SMAP**) can be downloaded from the Google Drive link below. Extract the archive and place the dataset folders directly inside the `dataset/` directory.
+The processed benchmark datasets can be downloaded from the Google Drive link below:
+
+**Google Drive:** `<Google Drive link for processed datasets>`
+
+Extract the downloaded archive and place the dataset folders directly inside the `dataset/` directory.
+
+The final directory structure should be:
 
 ```text
 dataset/
 ├── SWAT/
+│   ├── train.csv
+│   └── test.csv
 ├── WADI/
+│   ├── train.csv
+│   ├── test.csv
+│   └── test_label.csv
 ├── PSM/
 ├── SMD/
 ├── MSL/
 └── SMAP/
 ```
 
-**Google Drive:** *<insert Google Drive link here>*
+---
+
+# Pretrained Checkpoints
+
+Pretrained checkpoints for all datasets are provided. Each archive contains the checkpoints for the **five random seeds** used in our experiments.
+
+| Dataset | Google Drive |
+|---------|--------------|
+| SWAT | `<SWAT checkpoint link>` |
+| WADI | `<WADI checkpoint link>` |
+| PSM | `<PSM checkpoint link>` |
+| SMD | `<SMD checkpoint link>` |
+| MSL | `<MSL checkpoint link>` |
+| SMAP | `<SMAP checkpoint link>` |
+
+Download the desired checkpoint and place the `.pth` file inside the `main_pth/` directory.
+
+Example:
+
+```text
+FlowPlusDiff/
+├── main.py
+├── main_pth/
+│   └── MSL_seed_1000_i_d_256_nfl_4_ndl_4_p_0.5_ntimes_100_bmin_0.001_bmax_0.1_nh_4_fat_4_st_16_ud_[1, 2, 4, 8]_cond_True_ot_False_lmo_True.pth
+├── dataset/
+│   ├── SWAT/
+│   ├── WADI/
+│   ├── PSM/
+│   ├── SMD/
+│   ├── MSL/
+│   └── SMAP/
+└── ...
+```
