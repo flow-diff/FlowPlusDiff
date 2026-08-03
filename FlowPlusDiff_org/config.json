@@ -46,7 +46,7 @@
   },
   "PSM": {
     "batch_size": 64,
-    "win_size": 128,
+    "win_size": 256,
     "d_model": 256,
     "stride": 32,
     "n_flow_layers": 4,
@@ -78,7 +78,7 @@
     "diff_layers": 4,
     "betamin":1e-3,
     "betamax": 1e-1,
-    "n_times": 30,
+    "n_times": 100,
     "infer_samples": 30,
     "U_d": [1, 2, 4, 8],
     "diffst": 10,
